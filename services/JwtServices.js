@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 class JWTSERVICES {
     constructor() {
-        this.jwt_secret = process.env.JWT_SECREAT;
+        this.jwt_secret = process.env.JWT_SECRET;
         this.refresh_secret = process.env.REFRESH_SECRET;
     }
 
