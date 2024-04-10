@@ -26,7 +26,9 @@ const getPost = async (req, res, next) => {
             postType: doc.postType,
             createdAt: Date.parse(doc.createdAt) / 1000,
             commentsCount:doc.postCommentsCount,
-            status:doc.postLikeUsers.includes(userId)
+            status:doc.postLikeUsers.includes(userId),
+            userName:doc.postUser.userName,
+            profileImage:doc.postUser.profileImageUrl
         }
         return res.status(200).json({ post: resultDoc });
     } catch (e) {

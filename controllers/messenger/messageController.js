@@ -28,21 +28,22 @@ const MessageController = {
       const chatId = req.params.chatId;
       const { cursor } = req.query;
       let doc;
+      let count = 0;
       let query = {
-        chatId: chatId,
+        chat: chatId,
       };
       // console.log(cursor);
       if (cursor && cursor != null && cursor != "null" && cursor.length > 0) {
         query._id = { $lt: cursor };
         doc = await Message.find(query).sort({ _id: -1 }).limit(10).populate("sender", "-password").populate("chat");
       } else {
-        const count = await RedisServices.getUserStatus(userId, chatId);
+        count = await RedisServices.getUserStatus(userId, chatId);
         doc = await Message.find(query)
           .sort({ _id: -1 })
           .limit(10 + count)
           .populate("sender", "-password")
           .populate("chat");
-        // doc = await doc.reverse();
+        doc = await doc.reverse();
         if (count > 0) {
           await RedisServices.setUserStatus(userId, chatId, 0);
         }
@@ -52,7 +53,7 @@ const MessageController = {
         ...obj._doc,
         isSender: userId == obj.sender._id,
       }));
-      return res.status(200).json({ data: doc, cursor: doc.length == 10 ? doc[0]._id : null });
+      return res.status(200).json({ data: doc, cursor: doc.length == 10 ? doc[0]._id : null,unReadCount:count });
     } catch (err) {
       CustomErrorHandler.consoleError(err);
       return next(CustomErrorHandler.serverError());
@@ -60,7 +61,7 @@ const MessageController = {
   },
   async sendMessage(req, res, next) {
     const schema = Joi.object({
-      chatId: Joi.string()
+      chat: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required(),
       content: Joi.string().min(1).required(),

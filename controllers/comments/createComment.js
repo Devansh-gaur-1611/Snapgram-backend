@@ -1,6 +1,6 @@
 const Joi = require("joi");
 const Comment = require("../../models/comment");
-const User = require("../../models/user");
+const Post = require("../../models/post");
 const CustomErrorHandler = require("../../services/CustomErrorHandler");
 
 const createComment = async (req, res, next) => {
@@ -20,17 +20,16 @@ const createComment = async (req, res, next) => {
   const userId = req.pathType == 1 ? req.userId : req.user.id;
 
   try {
-    var doc = await Comment.create({ commentor: userId, post: postId, text: comment });
-    doc = await Comment.findById(doc._id).populate("commentor", "userName profileImageUrl");
-    const newComment = {
-      id: doc._id,
-      commentorId: userId,
-      commentorUserName: doc.commentor.userName,
-      profileImage: doc.commentor.profileImageUrl,
-      text: comment,
-      createdAt: doc.createdAt,
-    };
-    return res.status(201).json({ comment: newComment, message: "New comment created successfully" });
+    const postExist = await Post.exists({ _id: postId });
+    if(postExist){
+      var doc = await Comment.create({ commentor: userId, post: postId, text: comment });
+      doc = await Comment.findById(doc._id).populate("commentor", "userName profileImageUrl");
+      await Post.findByIdAndUpdate(postId,{ $inc: { postCommentsCount: 1 } })
+      return res.status(201).json({ comment: doc, message: "New comment created successfully" });
+    }else{
+      return next(CustomErrorHandler.notFound("Post not found !!!"))
+    }
+    
   } catch (e) {
     CustomErrorHandler.consoleError(e);
     return next(CustomErrorHandler.serverError());
