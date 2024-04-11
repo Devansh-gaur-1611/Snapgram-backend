@@ -13,7 +13,11 @@ const logout = async (req, res, next) => {
       next(CustomErrorHandler.badRequest());
     }
     try {
-      const { id } = jwtService.verify(req.body.refresh_token, process.env.REFRESH_SECRET);
+      const val = jwtService.verify(req.body.refresh_token, process.env.REFRESH_SECRET);
+      if(val.error){
+        return next(CustomErrorHandler.unAuthorized())
+      }
+      const { id } = val;
       RedisServices.createClient()
         .del(id)
         .then((ok) => {

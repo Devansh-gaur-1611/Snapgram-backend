@@ -17,6 +17,9 @@ const refresh = async (req, res, next) => {
   try {
     let userId;
     const val = jwtService.verify(req.body.refresh_token, process.env.REFRESH_SECRET);
+    if(val.error){
+      return next(CustomErrorHandler.unAuthorized())
+    }
     const { id } = val;
     userId = id;
     const resp = await redisClient.get(userId);

@@ -1,21 +1,30 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 class JWTSERVICES {
-    constructor() {
-        this.jwt_secret = process.env.JWT_SECRET;
-        this.refresh_secret = process.env.REFRESH_SECRET;
-    }
+  constructor() {
+    this.jwt_secret = process.env.JWT_SECRET;
+    this.refresh_secret = process.env.REFRESH_SECRET;
+  }
 
-    static sign(payload, expiry = 6000, secret) {
-        const jwtService = new JWTSERVICES();
-        
-        return jwt.sign(payload, secret || jwtService.jwt_secret, { expiresIn: expiry });
-    }
+  static sign(payload, expiry = 6000, secret) {
+    const jwtService = new JWTSERVICES();
 
-    static verify(refresh_token, secret) {
-        const jwtService = new JWTSERVICES();
-        return jwt.verify(refresh_token, secret || jwtService.jwt_secret);
-    }
+    return jwt.sign(payload, secret || jwtService.jwt_secret, { expiresIn: expiry });
+  }
+
+  static verify(refresh_token, secret) {
+    const jwtService = new JWTSERVICES();
+    return jwt.verify(refresh_token, secret || jwtService.jwt_secret, function (err, value) {
+      if (err) {
+        var val = {
+          error: err.name,
+        };
+        return val;
+      } else {
+        return value;
+      }
+    });
+  }
 }
 
 module.exports = JWTSERVICES;

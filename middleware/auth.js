@@ -6,24 +6,25 @@ const auth = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     // console.log(req.headers)
     if (!authHeader) {
-      return next(CustomErrorHandler.unAuthorized())
+      return next(CustomErrorHandler.unAuthorized());
     }
 
     const token = authHeader.split(" ")[1];
     try {
-      const id = jwtService.verify(token);
-      if (!id) {
-        return next(CustomErrorHandler.unAuthorized())
+      const val = jwtService.verify(token);
+      if (val.error) {
+        return next(CustomErrorHandler.unAuthorized());
       }
-      req.userId = id.id;
-      req.pathType = 1;// path = 1 = jwt token
+      const { id } = val;
+      req.userId = id;
+      req.pathType = 1; // path = 1 = jwt token
       next();
     } catch (e) {
-      CustomErrorHandler.consoleError(e)
-      return next(CustomErrorHandler.unAuthorized())
+      CustomErrorHandler.consoleError(e);
+      return next(CustomErrorHandler.unAuthorized());
     }
   } else {
-    req.pathType = 2;// 2 = oAuth
+    req.pathType = 2; // 2 = oAuth
     next();
   }
 };
